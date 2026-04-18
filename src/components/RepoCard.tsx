@@ -19,7 +19,7 @@ export default function RepoCard({ repo, rank }: { repo: GitHubRepo; rank?: numb
       href={repo.html_url}
       target="_blank"
       rel="noopener noreferrer"
-      className="block bg-lite-card border border-lite-border rounded p-3 card-glow cyber-border hover:border-neon-cyan/40 transition-all group"
+      className="block t-card t-border border rounded p-3 card-glow cyber-border hover:border-neon-cyan/40 transition-all group"
     >
       <div className="flex items-start gap-3">
         {rank != null && (
@@ -27,9 +27,9 @@ export default function RepoCard({ repo, rank }: { repo: GitHubRepo; rank?: numb
             #{rank}
           </span>
         )}
-        <img src={repo.owner.avatar_url} alt="" className="w-7 h-7 rounded border border-lite-border" />
+        <img src={repo.owner.avatar_url} alt="" className="w-7 h-7 rounded t-border border" />
         <div className="min-w-0 flex-1">
-          <h3 className="text-text-primary text-sm truncate group-hover:text-neon-cyan transition-colors font-semibold">
+          <h3 className="text-sm truncate group-hover:text-neon-cyan transition-colors font-semibold">
             {repo.full_name}
           </h3>
           <p className="text-text-muted text-xs mt-1 line-clamp-2 leading-relaxed">

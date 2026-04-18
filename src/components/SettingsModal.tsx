@@ -1,42 +1,95 @@
 import { useState } from 'react';
-import { getApiKey, setApiKey, getModel, setModel } from '../api/llm';
+import { getApiKey, setApiKey, getModel, setModel, getEndpoint, setEndpoint, PRESETS } from '../api/llm';
 
 export default function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [key, setKey] = useState(getApiKey);
   const [model, setMdl] = useState(getModel);
+  const [endpoint, setEp] = useState(getEndpoint);
+  const [preset, setPreset] = useState(() => {
+    const ep = getEndpoint();
+    const idx = PRESETS.findIndex(p => p.endpoint === ep);
+    return idx >= 0 ? idx : PRESETS.length - 1;
+  });
 
   if (!open) return null;
+
+  function applyPreset(idx: number) {
+    setPreset(idx);
+    const p = PRESETS[idx];
+    if (p.endpoint) setEp(p.endpoint);
+    if (p.models.length) setMdl(p.models[0]);
+  }
 
   function save() {
     setApiKey(key);
     setModel(model);
+    setEndpoint(endpoint);
     onClose();
   }
 
+  const currentPreset = PRESETS[preset];
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-lite-card border border-lite-border rounded-lg p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
-        <h2 className="text-sm font-bold text-neon-cyan uppercase tracking-widest mb-4">⚙ Settings</h2>
-        <label className="block text-xs text-text-muted mb-1">DashScope API Key</label>
+      <div className="t-card t-border border rounded-lg p-6 w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
+        <h2 className="text-sm font-bold text-neon-cyan uppercase tracking-widest mb-4">⚙ LLM Settings</h2>
+
+        <label className="block text-xs text-text-muted mb-1">Provider Preset</label>
+        <div className="flex flex-wrap gap-1 mb-4">
+          {PRESETS.map((p, i) => (
+            <button
+              key={p.name}
+              onClick={() => applyPreset(i)}
+              className={`px-2.5 py-1 text-[11px] rounded transition-colors border ${
+                preset === i
+                  ? 'bg-neon-cyan/10 text-neon-cyan border-neon-cyan/30'
+                  : 'text-text-muted t-border hover:text-text-primary'
+              }`}
+            >{p.name}</button>
+          ))}
+        </div>
+
+        <label className="block text-xs text-text-muted mb-1">API Endpoint</label>
+        <input
+          value={endpoint}
+          onChange={e => setEp(e.target.value)}
+          placeholder="https://api.example.com/v1/chat/completions"
+          className="w-full t-surface t-border border rounded px-3 py-2 text-xs mb-4 focus:outline-none focus:border-neon-cyan/50"
+        />
+
+        <label className="block text-xs text-text-muted mb-1">Model</label>
+        <div className="flex gap-2 mb-4">
+          <input
+            value={model}
+            onChange={e => setMdl(e.target.value)}
+            placeholder="model name"
+            className="flex-1 t-surface t-border border rounded px-3 py-2 text-xs focus:outline-none focus:border-neon-cyan/50"
+          />
+          {currentPreset.models.length > 0 && (
+            <select
+              value={currentPreset.models.includes(model) ? model : ''}
+              onChange={e => e.target.value && setMdl(e.target.value)}
+              className="t-surface t-border border rounded px-2 py-2 text-xs focus:outline-none focus:border-neon-cyan/50"
+            >
+              <option value="">presets</option>
+              {currentPreset.models.map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <label className="block text-xs text-text-muted mb-1">API Key</label>
         <input
           type="password"
           value={key}
           onChange={e => setKey(e.target.value)}
           placeholder="sk-..."
-          className="w-full bg-lite-surface border border-lite-border rounded px-3 py-2 text-sm text-text-primary mb-4 focus:outline-none focus:border-neon-cyan/50"
+          className="w-full t-surface t-border border rounded px-3 py-2 text-xs mb-6 focus:outline-none focus:border-neon-cyan/50"
         />
-        <label className="block text-xs text-text-muted mb-1">Model</label>
-        <select
-          value={model}
-          onChange={e => setMdl(e.target.value)}
-          className="w-full bg-lite-surface border border-lite-border rounded px-3 py-2 text-sm text-text-primary mb-6 focus:outline-none focus:border-neon-cyan/50"
-        >
-          <option value="qwen-turbo">qwen-turbo</option>
-          <option value="qwen-plus">qwen-plus</option>
-          <option value="qwen-max">qwen-max</option>
-        </select>
+
         <div className="flex gap-2 justify-end">
-          <button onClick={onClose} className="px-4 py-1.5 text-xs text-text-muted border border-lite-border rounded hover:text-text-primary transition-colors">Cancel</button>
+          <button onClick={onClose} className="px-4 py-1.5 text-xs text-text-muted t-border border rounded hover:text-text-primary transition-colors">Cancel</button>
           <button onClick={save} className="px-4 py-1.5 text-xs text-neon-cyan border border-neon-cyan/30 rounded bg-neon-cyan/10 hover:bg-neon-cyan/20 transition-colors">Save</button>
         </div>
       </div>

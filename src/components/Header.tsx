@@ -7,13 +7,15 @@ const tabs: { label: string; value: TimeRange }[] = [
   { label: '30D', value: 'monthly' },
 ];
 
-export default function Header({ activeRange, onRangeChange, children }: {
+export default function Header({ activeRange, onRangeChange, dark, onToggleTheme, children }: {
   activeRange: TimeRange;
   onRangeChange: (r: TimeRange) => void;
+  dark: boolean;
+  onToggleTheme: () => void;
   children?: ReactNode;
 }) {
   return (
-    <header className="border-b border-lite-border bg-lite-card/80 backdrop-blur-sm px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <header className="t-card t-border border-b px-6 py-2.5 flex items-center justify-between shrink-0 z-50">
       <div className="flex items-center gap-2">
         <div className="status-dot" />
         <h1 className="text-xl font-bold tracking-widest glitch-hover">
@@ -28,7 +30,7 @@ export default function Header({ activeRange, onRangeChange, children }: {
         <span className="text-text-muted text-[10px] uppercase tracking-wider hidden md:inline animate-flicker">
           ◈ signal active
         </span>
-        <nav className="flex gap-0.5 border border-lite-border rounded p-0.5" role="tablist" aria-label="Time range">
+        <nav className="flex gap-0.5 t-border border rounded p-0.5" role="tablist" aria-label="Time range">
           {tabs.map(t => (
             <button
               key={t.value}
@@ -45,6 +47,14 @@ export default function Header({ activeRange, onRangeChange, children }: {
             </button>
           ))}
         </nav>
+        <button
+          onClick={onToggleTheme}
+          className="px-2 py-1 text-xs text-text-muted hover:text-neon-yellow transition-colors"
+          aria-label="Toggle theme"
+          title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {dark ? '☀' : '☾'}
+        </button>
         {children}
       </div>
     </header>
