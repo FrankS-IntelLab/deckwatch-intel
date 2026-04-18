@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { TimeRange } from '../types';
 
 const tabs: { label: string; value: TimeRange }[] = [
@@ -6,9 +7,10 @@ const tabs: { label: string; value: TimeRange }[] = [
   { label: '30D', value: 'monthly' },
 ];
 
-export default function Header({ activeRange, onRangeChange }: {
+export default function Header({ activeRange, onRangeChange, children }: {
   activeRange: TimeRange;
   onRangeChange: (r: TimeRange) => void;
+  children?: ReactNode;
 }) {
   return (
     <header className="border-b border-lite-border bg-lite-card/80 backdrop-blur-sm px-6 py-3 flex items-center justify-between sticky top-0 z-50">
@@ -22,7 +24,7 @@ export default function Header({ activeRange, onRangeChange }: {
           // github intelligence feed
         </span>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <span className="text-text-muted text-[10px] uppercase tracking-wider hidden md:inline animate-flicker">
           ◈ signal active
         </span>
@@ -43,6 +45,7 @@ export default function Header({ activeRange, onRangeChange }: {
             </button>
           ))}
         </nav>
+        {children}
       </div>
     </header>
   );
