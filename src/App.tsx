@@ -31,10 +31,12 @@ export default function App() {
   }, [dark]);
 
   useEffect(() => {
-    Promise.all([
+    Promise.allSettled([
       fetchTrending(range, 15),
       ...TITANS.map(t => fetchOrgRepos(t.github, 5)),
-    ]).then(results => setAllRepos(results.flat())).catch(() => {});
+    ]).then(results => setAllRepos(
+      results.flatMap(r => r.status === 'fulfilled' ? r.value : [])
+    ));
   }, [range]);
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
@@ -77,8 +79,8 @@ export default function App() {
       </Header>
 
       <main className="flex-1 min-h-0 max-w-7xl mx-auto w-full px-4 sm:px-6 py-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TitansPanel />
-        <UndergroundPanel range={range} />
+        <TitansPanel timeRange={rangeLabel} />
+        <UndergroundPanel range={range} timeRange={rangeLabel} />
       </main>
 
       {aiOpen && (

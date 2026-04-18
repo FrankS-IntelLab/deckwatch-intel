@@ -1,7 +1,13 @@
 import type { GitHubRepo, TimeRange, TitanOrg } from '../types';
 
 const BASE = 'https://api.github.com';
-const headers: HeadersInit = { Accept: 'application/vnd.github.v3+json' };
+
+function getHeaders(): HeadersInit {
+  const h: HeadersInit = { Accept: 'application/vnd.github.v3+json' };
+  const token = localStorage.getItem('dw_gh_token');
+  if (token) h['Authorization'] = `Bearer ${token}`;
+  return h;
+}
 
 export const TITANS: TitanOrg[] = [
   { name: 'Anthropic', github: 'anthropics', color: '#d97706' },
@@ -23,8 +29,14 @@ function getDateRange(range: TimeRange): string {
 }
 
 async function fetchJSON<T>(url: string): Promise<T> {
-  const res = await fetch(url, { headers });
-  if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
+  const res = await fetch(url, { headers: getHeaders() });
+  if (!res.ok) {
+    const remaining = res.headers.get('x-ratelimit-remaining');
+    if (res.status === 403 && remaining === '0') {
+      throw new Error('GitHub API rate limit exceeded. Add a GitHub token in ⚙ Settings to get 5000 req/hr.');
+    }
+    throw new Error(`GitHub API error: ${res.status}`);
+  }
   return res.json();
 }
 

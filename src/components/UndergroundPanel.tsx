@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import type { GitHubRepo, TimeRange } from '../types';
 import { fetchTrending } from '../api/github';
 import RepoCard from './RepoCard';
+import { exportReposAsMarkdown } from '../utils/export';
 
-export default function UndergroundPanel({ range }: { range: TimeRange }) {
+export default function UndergroundPanel({ range, timeRange }: { range: TimeRange; timeRange: string }) {
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -23,6 +24,13 @@ export default function UndergroundPanel({ range }: { range: TimeRange }) {
         <div className="w-1 h-5 bg-neon-green rounded-full" />
         <h2 className="text-sm font-bold text-neon-green glow-green uppercase tracking-widest">The Street</h2>
         <span className="text-text-muted text-[10px] ml-1">// community signal</span>
+        {repos.length > 0 && (
+          <button
+            onClick={() => exportReposAsMarkdown(repos, 'The-Street', timeRange)}
+            className="ml-auto px-2 py-0.5 text-[10px] text-text-muted t-border border rounded hover:text-neon-green hover:border-neon-green/30 transition-colors"
+            title="Export list"
+          >↓ Export</button>
+        )}
       </div>
       <div className="flex-1 overflow-y-auto min-h-0 pr-1">
         {loading && (
