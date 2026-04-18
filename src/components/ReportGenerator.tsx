@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Markdown from 'react-markdown';
 import type { GitHubRepo } from '../types';
 import { chatCompletion } from '../api/llm';
 
@@ -18,6 +19,7 @@ export default function ReportGenerator({ repos, label }: { repos: GitHubRepo[];
   const [error, setError] = useState('');
   const [platform, setPlatform] = useState<'rednote' | 'reddit'>('reddit');
   const [copied, setCopied] = useState(false);
+  const [viewRaw, setViewRaw] = useState(false);
 
   async function generate() {
     setLoading(true); setError(''); setReport('');
@@ -49,7 +51,7 @@ export default function ReportGenerator({ repos, label }: { repos: GitHubRepo[];
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-3 t-border border-b flex items-center gap-3 shrink-0">
+      <div className="p-3 t-border border-b flex items-center gap-3 shrink-0 flex-wrap">
         <div className="flex gap-0.5 t-border border rounded p-0.5">
           {(['reddit', 'rednote'] as const).map(p => (
             <button key={p} onClick={() => setPlatform(p)}
@@ -61,6 +63,9 @@ export default function ReportGenerator({ repos, label }: { repos: GitHubRepo[];
           className="px-4 py-1.5 text-xs text-neon-cyan border border-neon-cyan/30 rounded bg-neon-cyan/10 hover:bg-neon-cyan/20 transition-colors disabled:opacity-40"
         >{loading ? '◌ Generating...' : '▸ Generate Report'}</button>
         {report && <>
+          <button onClick={() => setViewRaw(!viewRaw)}
+            className="px-3 py-1.5 text-xs text-text-muted t-border border rounded hover:text-text-primary transition-colors"
+          >{viewRaw ? '◉ Rendered' : '◎ Raw MD'}</button>
           <button onClick={copyToClipboard} className="px-3 py-1.5 text-xs text-neon-green border border-neon-green/30 rounded bg-neon-green/10 hover:bg-neon-green/20 transition-colors ml-auto">
             {copied ? '✓ Copied!' : '⎘ Copy'}
           </button>
@@ -71,7 +76,13 @@ export default function ReportGenerator({ repos, label }: { repos: GitHubRepo[];
         {!report && !error && !loading && <p className="text-text-muted text-xs text-center py-4">// select platform and generate a report</p>}
         {loading && <div className="text-neon-magenta text-xs animate-pulse py-4 text-center">◌ compiling intelligence report...</div>}
         {error && <div className="text-red-600 text-xs border border-red-300 rounded px-3 py-2">⚠ {error}</div>}
-        {report && <pre className="t-surface t-border border rounded p-3 whitespace-pre-wrap text-xs leading-relaxed">{report}</pre>}
+        {report && (
+          viewRaw
+            ? <pre className="t-surface t-border border rounded p-3 whitespace-pre-wrap text-xs leading-relaxed">{report}</pre>
+            : <div className="t-surface t-border border rounded p-4 prose-cyber">
+                <Markdown>{report}</Markdown>
+              </div>
+        )}
       </div>
     </div>
   );

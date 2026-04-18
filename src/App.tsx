@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { TimeRange, GitHubRepo } from './types';
 import { fetchTrending, fetchOrgRepos, TITANS } from './api/github';
 import Header from './components/Header';
@@ -18,6 +18,10 @@ export default function App() {
   const [aiOpen, setAiOpen] = useState(false);
   const [allRepos, setAllRepos] = useState<GitHubRepo[]>([]);
   const [dark, setDark] = useState(() => localStorage.getItem('dw_theme') === 'dark');
+  const [aiHeight, setAiHeight] = useState(() => Number(localStorage.getItem('dw_ai_height')) || 280);
+  const dragging = useRef(false);
+  const startY = useRef(0);
+  const startH = useRef(0);
 
   const rangeLabel = { daily: 'Last 24h', weekly: 'Last 7 days', monthly: 'Last 30 days' }[range];
 
@@ -33,6 +37,36 @@ export default function App() {
     ]).then(results => setAllRepos(results.flat())).catch(() => {});
   }, [range]);
 
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    dragging.current = true;
+    startY.current = e.clientY;
+    startH.current = aiHeight;
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+  }, [aiHeight]);
+
+  useEffect(() => {
+    function onMouseMove(e: MouseEvent) {
+      if (!dragging.current) return;
+      const delta = startY.current - e.clientY;
+      const newH = Math.min(Math.max(startH.current + delta, 150), window.innerHeight - 120);
+      setAiHeight(newH);
+    }
+    function onMouseUp() {
+      if (!dragging.current) return;
+      dragging.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      localStorage.setItem('dw_ai_height', String(aiHeight));
+    }
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, [aiHeight]);
+
   return (
     <div className="h-screen flex flex-col t-bg">
       <Header activeRange={range} onRangeChange={setRange} dark={dark} onToggleTheme={() => setDark(!dark)}>
@@ -42,15 +76,22 @@ export default function App() {
         >◈ AI</button>
       </Header>
 
-      {/* Scrollable data columns */}
       <main className="flex-1 min-h-0 max-w-7xl mx-auto w-full px-4 sm:px-6 py-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TitansPanel />
         <UndergroundPanel range={range} />
       </main>
 
-      {/* Fixed AI drawer at bottom */}
       {aiOpen && (
-        <div className="t-card t-border border-t h-[280px] shrink-0 flex flex-col">
+        <div className="t-card t-border border-t shrink-0 flex flex-col" style={{ height: aiHeight }}>
+          {/* Drag handle */}
+          <div
+            onMouseDown={onMouseDown}
+            className="h-2 cursor-row-resize flex items-center justify-center shrink-0 hover:bg-neon-cyan/10 transition-colors group"
+            title="Drag to resize"
+          >
+            <div className="w-10 h-0.5 rounded-full bg-text-muted/30 group-hover:bg-neon-cyan/50 transition-colors" />
+          </div>
+
           <div className="flex items-center gap-2 px-4 py-1.5 t-border border-b shrink-0">
             <span className="text-neon-magenta text-xs font-bold tracking-widest glow-magenta">◈ AI INTEL</span>
             <div className="flex gap-0.5 ml-3 t-border border rounded p-0.5">

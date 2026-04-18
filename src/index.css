@@ -115,3 +115,20 @@ body::after {
   box-shadow: 0 0 6px var(--color-neon-green);
   animation: flicker 3s infinite;
 }
+
+/* Rendered markdown in reports */
+.prose-cyber { font-size: 13px; line-height: 1.7; }
+.prose-cyber h1, .prose-cyber h2, .prose-cyber h3 { color: var(--color-neon-cyan); font-weight: 700; margin: 0.8em 0 0.4em; }
+.prose-cyber h1 { font-size: 1.3em; }
+.prose-cyber h2 { font-size: 1.15em; }
+.prose-cyber h3 { font-size: 1em; }
+.prose-cyber p { margin: 0.4em 0; }
+.prose-cyber ul, .prose-cyber ol { padding-left: 1.5em; margin: 0.4em 0; }
+.prose-cyber li { margin: 0.2em 0; }
+.prose-cyber strong { color: var(--color-neon-magenta); }
+.prose-cyber code { font-size: 0.9em; padding: 1px 4px; border-radius: 3px; background: rgba(0,0,0,0.06); }
+.theme-dark .prose-cyber code { background: rgba(255,255,255,0.06); }
+.prose-cyber a { color: var(--color-neon-cyan); text-decoration: underline; }
+.prose-cyber hr { border: none; border-top: 1px solid var(--color-lite-border); margin: 0.8em 0; }
+.theme-dark .prose-cyber hr { border-color: var(--color-dark-border); }
+.prose-cyber blockquote { border-left: 3px solid var(--color-neon-cyan); padding-left: 0.8em; margin: 0.5em 0; color: var(--color-text-muted); }
