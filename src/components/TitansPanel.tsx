@@ -81,7 +81,7 @@ export default function TitansPanel({ timeRange }: { timeRange: string }) {
                 {isOpen && (
                   <div className="px-3 pb-3 grid gap-2 t-border border-t">
                     {error && <div className="text-red-500 text-xs py-2">⚠ {error}</div>}
-                    {repos?.map(repo => <RepoCard key={repo.id} repo={repo} />)}
+                    {repos?.map(repo => <RepoCard key={repo.id} repo={repo} side="left" />)}
                   </div>
                 )}
               </div>

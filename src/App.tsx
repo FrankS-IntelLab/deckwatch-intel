@@ -7,11 +7,25 @@ import UndergroundPanel from './components/UndergroundPanel';
 import ChatPanel from './components/ChatPanel';
 import ReportGenerator from './components/ReportGenerator';
 import SettingsModal from './components/SettingsModal';
+import RepoQueryPopup from './components/RepoQueryPopup';
+import HistoryPanel from './components/HistoryPanel';
+import { RepoPopupProvider, useRepoPopup } from './context/RepoPopupContext';
+import { HistoryProvider } from './context/HistoryContext';
 import './index.css';
 
-type AITab = 'chat' | 'report';
+type AITab = 'chat' | 'report' | 'history';
 
 export default function App() {
+  return (
+    <HistoryProvider>
+      <RepoPopupProvider>
+        <AppInner />
+      </RepoPopupProvider>
+    </HistoryProvider>
+  );
+}
+
+function AppInner() {
   const [range, setRange] = useState<TimeRange>('weekly');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiTab, setAiTab] = useState<AITab>('chat');
@@ -22,6 +36,8 @@ export default function App() {
   const dragging = useRef(false);
   const startY = useRef(0);
   const startH = useRef(0);
+
+  const { leftRepo, rightRepo, closePopup } = useRepoPopup();
 
   const rangeLabel = { daily: 'Last 24h', '48h': 'Last 48h', weekly: 'Last 7 days', monthly: 'Last 30 days' }[range];
 
@@ -97,21 +113,23 @@ export default function App() {
           <div className="flex items-center gap-2 px-4 py-1.5 t-border border-b shrink-0">
             <span className="text-neon-magenta text-xs font-bold tracking-widest glow-magenta">◈ AI INTEL</span>
             <div className="flex gap-0.5 ml-3 t-border border rounded p-0.5">
-              {(['chat', 'report'] as const).map(t => (
+              {(['chat', 'report', 'history'] as const).map(t => (
                 <button key={t} onClick={() => setAiTab(t)}
                   className={`px-3 py-0.5 text-[11px] rounded-sm transition-colors ${aiTab === t ? 'bg-neon-magenta/10 text-neon-magenta border border-neon-magenta/30' : 'text-text-muted hover:text-text-primary border border-transparent'}`}
-                >{t === 'chat' ? 'Chat' : 'Report'}</button>
+                >{t === 'chat' ? 'Chat' : t === 'report' ? 'Report' : 'History'}</button>
               ))}
             </div>
             <span className="text-text-muted text-[10px] ml-auto">{rangeLabel} • {allRepos.length} repos</span>
             <button onClick={() => setAiOpen(false)} className="text-text-muted hover:text-text-primary text-sm ml-2">✕</button>
           </div>
           <div className="flex-1 min-h-0">
-            {aiTab === 'chat' ? <ChatPanel repos={allRepos} label={rangeLabel} /> : <ReportGenerator repos={allRepos} label={rangeLabel} />}
+            {aiTab === 'chat' ? <ChatPanel repos={allRepos} label={rangeLabel} /> : aiTab === 'report' ? <ReportGenerator repos={allRepos} label={rangeLabel} /> : <HistoryPanel />}
           </div>
         </div>
       )}
 
+      {leftRepo && <RepoQueryPopup repo={leftRepo} side="left" onClose={() => closePopup('left')} />}
+      {rightRepo && <RepoQueryPopup repo={rightRepo} side="right" onClose={() => closePopup('right')} />}
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );

@@ -1,4 +1,6 @@
+import { useRef } from 'react';
 import type { GitHubRepo } from '../types';
+import { useRepoPopup, type PopupSide } from '../context/RepoPopupContext';
 
 function formatCount(n: number): string {
   if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
@@ -13,12 +15,26 @@ function timeAgo(date: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-export default function RepoCard({ repo, rank }: { repo: GitHubRepo; rank?: number }) {
+export default function RepoCard({ repo, rank, side }: { repo: GitHubRepo; rank?: number; side: PopupSide }) {
+  const { hasPopup, openPopup } = useRepoPopup();
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function onEnter() {
+    if (hasPopup(side)) return;
+    timer.current = setTimeout(() => openPopup(repo, side), 3000);
+  }
+
+  function onLeave() {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+  }
+
   return (
     <a
       href={repo.html_url}
       target="_blank"
       rel="noopener noreferrer"
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
       className="block t-card t-border border rounded p-3 card-glow cyber-border hover:border-neon-cyan/40 transition-all group"
     >
       <div className="flex items-start gap-3">

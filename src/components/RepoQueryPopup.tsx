@@ -2,29 +2,25 @@ import { useState, useRef, useEffect } from 'react';
 import type { GitHubRepo } from '../types';
 import type { ChatMessage } from '../api/llm';
 import { chatCompletion } from '../api/llm';
+import type { PopupSide } from '../context/RepoPopupContext';
 import { useHistory } from '../context/HistoryContext';
 
-function buildSystemPrompt(repos: GitHubRepo[], label: string): string {
-  const summary = repos.map(r =>
-    `- ${r.full_name}: ★${r.stargazers_count} | ${r.language || 'N/A'} | ${r.description || 'no desc'}`
-  ).join('\n');
-  return `You are DeckWatch Intel AI, a cyberpunk-themed GitHub intelligence analyst. You speak concisely with a slight edge.
-
-Current data context — ${label}:
-${summary}
-
-Answer questions about these repos, trends, and what's happening in the community. Be insightful and opinionated.`;
-}
-
-export default function ChatPanel({ repos, label }: { repos: GitHubRepo[]; label: string }) {
+export default function RepoQueryPopup({ repo, side, onClose }: { repo: GitHubRepo; side: PopupSide; onClose: () => void }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const { addEntry } = useHistory();
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const systemPrompt = `You are DeckWatch Intel AI. Answer questions about this specific GitHub repo concisely:
+- Name: ${repo.full_name}
+- Description: ${repo.description || 'none'}
+- Stars: ${repo.stargazers_count}, Forks: ${repo.forks_count}
+- Language: ${repo.language || 'N/A'}
+- URL: ${repo.html_url}
+- Last pushed: ${repo.pushed_at}`;
 
   async function send() {
     if (!input.trim() || loading) return;
@@ -33,25 +29,31 @@ export default function ChatPanel({ repos, label }: { repos: GitHubRepo[]; label
     setMessages(history);
     setInput('');
     setLoading(true);
-    setError('');
     try {
-      const system: ChatMessage = { role: 'system', content: buildSystemPrompt(repos, label) };
-      const reply = await chatCompletion([system, ...history]);
+      const reply = await chatCompletion([{ role: 'system', content: systemPrompt }, ...history]);
       const updated = [...history, { role: 'assistant' as const, content: reply }];
       setMessages(updated);
-      addEntry({ source: 'chat', label: `AI Chat — ${label}`, messages: updated });
+      addEntry({ source: 'popup', label: repo.full_name, messages: updated });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
+      setMessages([...history, { role: 'assistant', content: `⚠ ${e instanceof Error ? e.message : 'Error'}` }]);
+    } finally { setLoading(false); }
   }
 
+  const posClass = side === 'left' ? 'left-4' : 'right-4';
+
   return (
-    <div className="flex flex-col h-full">
+    <div className={`fixed top-16 ${posClass} z-[90] w-[380px] h-[420px] t-card t-border border rounded-lg shadow-xl flex flex-col`}>
+      <div className="flex items-center gap-2 px-3 py-2 t-border border-b shrink-0">
+        <img src={repo.owner.avatar_url} alt="" className="w-5 h-5 rounded" />
+        <span className="text-xs font-semibold text-neon-cyan truncate flex-1">{repo.full_name}</span>
+        <span className={`text-[9px] uppercase tracking-wider ${side === 'left' ? 'text-neon-magenta' : 'text-neon-green'}`}>
+          {side === 'left' ? 'megacorp' : 'street'}
+        </span>
+        <button onClick={onClose} className="text-text-muted hover:text-text-primary text-sm ml-1">✕</button>
+      </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
         {messages.length === 0 && (
-          <p className="text-text-muted text-xs text-center py-4">// ask me anything about the current feed</p>
+          <p className="text-text-muted text-xs text-center py-4">// ask anything about this repo</p>
         )}
         {messages.map((m, i) => (
           <div key={i} className={`text-sm ${m.role === 'user' ? 'text-right' : ''}`}>
@@ -63,7 +65,6 @@ export default function ChatPanel({ repos, label }: { repos: GitHubRepo[]; label
           </div>
         ))}
         {loading && <div className="text-neon-cyan text-xs animate-pulse">◌ processing...</div>}
-        {error && <div className="text-red-600 text-xs border border-red-300 rounded px-3 py-2">⚠ {error}</div>}
         <div ref={bottomRef} />
       </div>
       <div className="t-border border-t p-2 flex gap-2 shrink-0">
@@ -71,8 +72,9 @@ export default function ChatPanel({ repos, label }: { repos: GitHubRepo[]; label
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
-          placeholder="Ask about the feed..."
+          placeholder="Ask about this repo..."
           className="flex-1 t-surface t-border border rounded px-3 py-1.5 text-xs focus:outline-none focus:border-neon-cyan/50"
+          autoFocus
         />
         <button onClick={send} disabled={loading || !input.trim()}
           className="px-3 py-1.5 text-xs text-neon-cyan border border-neon-cyan/30 rounded bg-neon-cyan/10 hover:bg-neon-cyan/20 transition-colors disabled:opacity-40"

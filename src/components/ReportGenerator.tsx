@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Markdown from 'react-markdown';
 import type { GitHubRepo } from '../types';
 import { chatCompletion } from '../api/llm';
+import { useHistory } from '../context/HistoryContext';
 
 function buildPrompt(repos: GitHubRepo[], label: string, platform: 'rednote' | 'reddit'): string {
   const summary = repos.map(r =>
@@ -20,6 +21,7 @@ export default function ReportGenerator({ repos, label }: { repos: GitHubRepo[];
   const [platform, setPlatform] = useState<'rednote' | 'reddit'>('reddit');
   const [copied, setCopied] = useState(false);
   const [viewRaw, setViewRaw] = useState(false);
+  const { addEntry } = useHistory();
 
   async function generate() {
     setLoading(true); setError(''); setReport('');
@@ -29,6 +31,7 @@ export default function ReportGenerator({ repos, label }: { repos: GitHubRepo[];
         { role: 'user', content: buildPrompt(repos, label, platform) },
       ]);
       setReport(result);
+      addEntry({ source: 'report', label: `Report — ${platform === 'reddit' ? 'Reddit' : '小红书'} — ${label}`, messages: [{ role: 'user', content: `Generate ${platform} report for ${label}` }, { role: 'assistant', content: result }] });
     } catch (e) { setError(e instanceof Error ? e.message : 'Unknown error'); }
     finally { setLoading(false); }
   }

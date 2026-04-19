@@ -40,7 +40,7 @@ export default function UndergroundPanel({ range, timeRange }: { range: TimeRang
           <div className="text-red-600 text-xs py-4 border border-red-300 rounded px-3">⚠ SIGNAL LOST — {error}</div>
         )}
         <div className="grid gap-2">
-          {repos.map((repo, i) => <RepoCard key={repo.id} repo={repo} rank={i + 1} />)}
+          {repos.map((repo, i) => <RepoCard key={repo.id} repo={repo} rank={i + 1} side="right" />)}
         </div>
       </div>
     </section>
