@@ -15,7 +15,7 @@ export interface GitHubRepo {
   open_issues_count: number;
 }
 
-export type TimeRange = 'daily' | 'weekly' | 'monthly';
+export type TimeRange = 'daily' | '48h' | 'weekly' | 'monthly';
 
 export interface TitanOrg {
   name: string;

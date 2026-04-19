@@ -23,6 +23,7 @@ function getDateRange(range: TimeRange): string {
   const now = new Date();
   const d = new Date(now);
   if (range === 'daily') d.setDate(d.getDate() - 1);
+  else if (range === '48h') d.setDate(d.getDate() - 2);
   else if (range === 'weekly') d.setDate(d.getDate() - 7);
   else d.setMonth(d.getMonth() - 1);
   return d.toISOString().split('T')[0];

@@ -3,6 +3,7 @@ import type { TimeRange } from '../types';
 
 const tabs: { label: string; value: TimeRange }[] = [
   { label: '24H', value: 'daily' },
+  { label: '48H', value: '48h' },
   { label: '7D', value: 'weekly' },
   { label: '30D', value: 'monthly' },
 ];

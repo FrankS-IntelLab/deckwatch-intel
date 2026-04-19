@@ -23,7 +23,7 @@ export default function App() {
   const startY = useRef(0);
   const startH = useRef(0);
 
-  const rangeLabel = { daily: 'Last 24h', weekly: 'Last 7 days', monthly: 'Last 30 days' }[range];
+  const rangeLabel = { daily: 'Last 24h', '48h': 'Last 48h', weekly: 'Last 7 days', monthly: 'Last 30 days' }[range];
 
   useEffect(() => {
     document.body.classList.toggle('theme-dark', dark);
