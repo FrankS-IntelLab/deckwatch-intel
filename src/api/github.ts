@@ -37,7 +37,7 @@ export const TITANS: TitanOrg[] = [
   { name: 'Qualcomm', github: 'quic', color: '#3b82f6', category: 'supply-chain' },
 ];
 
-function getDateRange(range: TimeRange): string {
+export function getDateRange(range: TimeRange): string {
   const now = new Date();
   const d = new Date(now);
   if (range === 'daily') d.setDate(d.getDate() - 1);
@@ -79,4 +79,13 @@ export async function fetchOrgRepos(org: string, limit = 10): Promise<GitHubRepo
   return fetchJSON<GitHubRepo[]>(
     `${BASE}/orgs/${org}/repos?sort=pushed&direction=desc&per_page=${limit}`
   );
+}
+
+export async function fetchOrgStarActivity(org: string, range: TimeRange): Promise<{ totalStars: number; repoCount: number }> {
+  const since = getDateRange(range);
+  const data = await fetchJSON<{ total_count: number; items: GitHubRepo[] }>(
+    `${BASE}/search/repositories?q=org:${org}+pushed:>${since}&sort=stars&order=desc&per_page=5`
+  );
+  const totalStars = data.items.reduce((sum, r) => sum + r.stargazers_count, 0);
+  return { totalStars, repoCount: data.total_count };
 }

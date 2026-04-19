@@ -92,7 +92,7 @@ function AppInner() {
       </Header>
 
       <main className="flex-1 min-h-0 max-w-7xl mx-auto w-full px-4 sm:px-6 py-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TitansPanel timeRange={rangeLabel} />
+        <TitansPanel timeRange={rangeLabel} range={range} />
         <UndergroundPanel range={range} timeRange={rangeLabel} />
       </main>
 
