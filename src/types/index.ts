@@ -17,8 +17,11 @@ export interface GitHubRepo {
 
 export type TimeRange = 'daily' | '48h' | 'weekly' | 'monthly';
 
+export type TitanCategory = 'us-ai' | 'global-ai' | 'supply-chain';
+
 export interface TitanOrg {
   name: string;
   github: string;
   color: string;
+  category: TitanCategory;
 }

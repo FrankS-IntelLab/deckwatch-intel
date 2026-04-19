@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { TimeRange, GitHubRepo } from './types';
-import { fetchTrending, fetchOrgRepos, TITANS } from './api/github';
+import { fetchTrending } from './api/github';
 import Header from './components/Header';
 import TitansPanel from './components/TitansPanel';
 import UndergroundPanel from './components/UndergroundPanel';
@@ -47,12 +47,9 @@ function AppInner() {
   }, [dark]);
 
   useEffect(() => {
-    Promise.allSettled([
-      fetchTrending(range, 15),
-      ...TITANS.map(t => fetchOrgRepos(t.github, 5)),
-    ]).then(results => setAllRepos(
-      results.flatMap(r => r.status === 'fulfilled' ? r.value : [])
-    ));
+    fetchTrending(range, 15)
+      .then(repos => setAllRepos(repos))
+      .catch(() => setAllRepos([]));
   }, [range]);
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
